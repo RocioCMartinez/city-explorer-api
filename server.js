@@ -4,10 +4,12 @@ const express = require('express');
 require('dotenv').config();
 const cors = require('cors');
 
-// Create Server
-const app = express(); // app === my server
+let data = require('./data/weather.json');
 
-// middleware
+
+const app = express();
+
+// Middleware
 app.use(cors());
 
 // Define Port for server
@@ -21,6 +23,7 @@ app.get('/', (request, response) => {
   response.status(200).send('Welcome to my server!');
 });
 
+
 app.get('/hello', (request, response) => {
   console.log(request.query);
   let userFirstName = request.query.firstname;
@@ -29,6 +32,35 @@ app.get('/hello', (request, response) => {
   response.status(200).send(`Hello ${userFirstName} ${userLastName}`);
 });
 
+app.get('/weather', (request, response, next) => {
+  try{
+    let queryCity = request.query.city_name;
+
+    let foundCity = data.find(element => element.city_name.toLowerCase() === queryCity.toLowerCase());
+
+    let forecastWeather = foundCity.data.map(element => {
+      let high = element.high_temp;
+      let low = element.low_temp;
+      let description = `Low of ${low}, high of ${high}, with ${element.weather.description}`;
+      return new Forecast(element.valid_date, description);
+    });
+
+    // let cityToSend = new Forecast(foundCity);
+    response.status(200).send(forecastWeather);
+
+  } catch (error) {
+    next(error);
+  }
+});
+
+class Forecast {
+  constructor(date, des){
+
+    this.date = date;
+    this.description = des;
+
+  }
+}
 
 
 //Catch all endpoint - last endpoint defined
