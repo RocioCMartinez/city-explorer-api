@@ -3,10 +3,11 @@
 const express = require('express');
 require('dotenv').config();
 const cors = require('cors');
+const axios = require('axios');
 
-let data = require('./data/weather.json');
 
 
+// App is my server
 const app = express();
 
 // Middleware
@@ -24,47 +25,51 @@ app.get('/', (request, response) => {
 });
 
 
-app.get('/hello', (request, response) => {
-  console.log(request.query);
-  let userFirstName = request.query.firstname;
-  let userLastName = request.query.lastname;
 
-  response.status(200).send(`Hello ${userFirstName} ${userLastName}`);
-});
+app.get('/weather', async (request, response, next) => {
+  try {
+    let lat = request.query.lat;
+    let lon = request.query.lon;
 
-app.get('/weather', (request, response, next) => {
-  try{
-    let queryCity = request.query.city_name;
 
-    let foundCity = data.find(element => element.city_name.toLowerCase() === queryCity.toLowerCase());
+    // let searchQuery = request.query.searchQuery;
 
-    let forecastWeather = foundCity.data.map(element => {
-      let high = element.high_temp;
-      let low = element.low_temp;
-      let description = `Low of ${low}, high of ${high}, with ${element.weather.description}`;
-      return new Forecast(element.valid_date, description);
+
+    let weatherURL=`https://api.weatherbit.io/v2.0/forecast/daily?lat=${lat}&lon=${lon}&key=${process.env.REACT_APP_WEATHERBIT}`;
+    let weatherDataAxios = await axios.get(weatherURL);
+
+
+
+    let forecastWeather = weatherDataAxios.data.data.map(element => {
+
+
+      return new Forecast( element);
     });
-
-    // let cityToSend = new Forecast(foundCity);
     response.status(200).send(forecastWeather);
+
+
 
   } catch (error) {
     next(error);
   }
 });
 
-class Forecast {
-  constructor(date, des){
 
-    this.date = date;
-    this.description = des;
+
+class Forecast {
+  constructor(element) {
+
+    this.date = element.valid_date;
+    this.high = element.high_temp;
+    this.low = element.low_temp;
+    this.description = `Low of ${this.low}, high of ${this.high}, with ${element.weather.description}`;
 
   }
 }
 
 
 //Catch all endpoint - last endpoint defined
-app.get('*', (request, response) =>{
+app.get('*', (request, response) => {
   response.status(404).send('Sorry, page not found');
 });
 
