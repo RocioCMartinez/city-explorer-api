@@ -32,28 +32,50 @@ app.get('/weather', async (request, response, next) => {
     let lon = request.query.lon;
 
 
-    // let searchQuery = request.query.searchQuery;
+
 
 
     let weatherURL=`https://api.weatherbit.io/v2.0/forecast/daily?lat=${lat}&lon=${lon}&key=${process.env.REACT_APP_WEATHERBIT}`;
     let weatherDataAxios = await axios.get(weatherURL);
 
 
+    if (weatherDataAxios){
+      let forecastWeather = weatherDataAxios.data.data.map(element => {
 
-    let forecastWeather = weatherDataAxios.data.data.map(element => {
-
-
-      return new Forecast( element);
-    });
-    response.status(200).send(forecastWeather);
-
-
+        return new Forecast( element);
+      });
+      response.status(200).send(forecastWeather);
+    } else {
+      response.status(500).send('RESULTS NOT FOUND');
+    }
 
   } catch (error) {
     next(error);
   }
 });
 
+app.get('/movies', async (request, response, next) => {
+  try {
+    let searchedMovie = request.query.searchQuery;
+
+    let movieURL = `https://api.themoviedb.org/3/search/movie?api_key=${process.env.MOVIE_API_KEY}&query=${searchedMovie}`;
+
+    let dataFromAxios = await axios.get(movieURL);
+
+    let dataToSend = dataFromAxios.data.results.map(movieObj => new Movie (movieObj));
+
+    response.status(200).send(dataToSend);
+  } catch (error) {
+    next(error);
+  }
+});
+
+class Movie {
+  constructor(movieObj){
+    this.title= movieObj.title;
+    this.overview= movieObj.overview;
+  }
+}
 
 
 class Forecast {
