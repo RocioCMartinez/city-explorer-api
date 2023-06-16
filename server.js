@@ -4,7 +4,7 @@ const express = require('express');
 require('dotenv').config();
 const cors = require('cors');
 const getWeather = require('./modules/weather');
-const getMovies = require('./modules/movies')
+const getMovies = require('./modules/movies');
 
 
 

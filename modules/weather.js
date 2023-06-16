@@ -2,6 +2,9 @@
 const axios = require('axios');
 
 
+
+
+
 async function getWeather (request, response, next) {
   try {
     let lat = request.query.lat;
@@ -10,7 +13,7 @@ async function getWeather (request, response, next) {
     let weatherDataAxios = await axios.get(weatherURL);
     if (weatherDataAxios){
       let forecastWeather = weatherDataAxios.data.data.map(element => {
-        return new Forecast( element);
+        return new Forecast(element);
       });
       response.status(200).send(forecastWeather);
     } else {
